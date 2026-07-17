@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ course.name }} | OnlineCourse</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-expand navbar-dark bg-primary">
+    <a class="navbar-brand" href="{% url 'onlinecourse:index' %}">OnlineCourse</a>
+    <div class="ml-auto">
+        {% if user.is_authenticated %}
+            <span class="text-white mr-3">{{ user.first_name|default:user.username }}</span>
+            <a class="btn btn-outline-light btn-sm" href="{% url 'onlinecourse:logout' %}">Logout</a>
+        {% else %}
+            <a class="btn btn-light btn-sm" href="{% url 'onlinecourse:login' %}">Login</a>
+        {% endif %}
+    </div>
+</nav>
+
+<main class="container py-4">
+    <div class="jumbotron bg-white shadow-sm">
+        <h1 class="display-4">{{ course.name }}</h1>
+        <p class="lead">{{ course.description }}</p>
+    </div>
+
+    <h2 class="mb-3">Course lessons</h2>
+    {% for lesson in course.lesson_set.all %}
+        <section class="card mb-3 shadow-sm">
+            <div class="card-header bg-white">
+                <h3 class="h5 mb-0">Lesson {{ lesson.order|add:1 }}: {{ lesson.title }}</h3>
+            </div>
+            <div class="card-body">{{ lesson.content|linebreaks }}</div>
+        </section>
+    {% empty %}
+        <div class="alert alert-info">Lessons will be added soon.</div>
+    {% endfor %}
+
+    {% if user.is_authenticated %}
+        <button class="btn btn-primary btn-lg btn-block my-4" data-toggle="collapse" data-target="#exam">
+            Start mock exam
+        </button>
+        <section id="exam" class="collapse show">
+            <div class="card border-primary shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">{{ course.name }} — Mock Exam</h2>
+                </div>
+                <div class="card-body">
+                    <form id="questionform" action="{% url 'onlinecourse:submit' course.id %}" method="post">
+                        {% csrf_token %}
+                        {% for lesson in course.lesson_set.all %}
+                            {% for question in lesson.question_set.all %}
+                                <fieldset class="mb-4">
+                                    <legend class="h5">{{ forloop.parentloop.counter }}.{{ forloop.counter }} {{ question.question_text }} <span class="badge badge-info">{{ question.grade }} points</span></legend>
+                                    {% for choice in question.choice_set.all %}
+                                        <div class="form-check py-1">
+                                            <input type="checkbox" name="choice_{{ choice.id }}" class="form-check-input" id="choice_{{ choice.id }}" value="{{ choice.id }}">
+                                            <label class="form-check-label" for="choice_{{ choice.id }}">{{ choice.choice_text }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </fieldset>
+                            {% endfor %}
+                        {% endfor %}
+                        <button class="btn btn-success btn-lg btn-block" type="submit">Submit exam</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    {% else %}
+        <div class="alert alert-warning">Please log in to take the mock exam.</div>
+    {% endif %}
+</main>
+</body>
+</html>
