@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+
+{% block title %}OnlineCourse Administration{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    html, body, #container { min-width: 1100px !important; }
+    #content { max-width: 1050px; }
+    #content-main { min-width: 720px; }
+</style>
+{% endblock %}
+
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}">OnlineCourse Administration</a></div>
+{% endblock %}
